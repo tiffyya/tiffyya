@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tooth Trivia Quiz!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #f1f8fb;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    #quiz-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.09);
+      max-width: 400px;
+      margin: 32px 0;
+      width: 95%;
+      padding: 32px 24px 24px 24px;
+    }
+    h1 {
+      text-align: center;
+      color: #1572A1;
+      margin-bottom: 18px;
+    }
+    #question {
+      font-size: 1.12em;
+      margin-bottom: 22px;
+      min-height: 48px;
+    }
+    .option {
+      display: block;
+      background: #f0f0f0;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.18s;
+      width: 100%;
+      text-align: left;
+    }
+    .option:hover, .option.selected {
+      background: #c0ebfa;
+    }
+    .option.correct {
+      background: #b8e994;
+      color: #176a1d;
+    }
+    .option.incorrect {
+      background: #ffb6b6;
+      color: #a10505;
+    }
+    #feedback {
+      min-height: 22px;
+      margin-bottom: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+    #next-btn, #restart-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: #1572A1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.05em;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #next-btn:disabled {
+      background: #88bcd8;
+      cursor: not-allowed;
+    }
+    #score {
+      text-align: right;
+      font-size: 0.98em;
+      color: #3b454e;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 500px) {
+      #quiz-container { padding: 18px 7px 16px 7px; }
+      h1 { font-size: 1.3em; }
+      #question { font-size: 1em; }
+    }
+  </style>
+</head>
+<body>
+  <div id="quiz-container">
+    <h1>🦷 Tooth Trivia Quiz!</h1>
+    <div id="score"></div>
+    <div id="question"></div>
+    <div id="options"></div>
+    <div id="feedback"></div>
+    <button id="next-btn" disabled>Next Question</button>
+    <button id="restart-btn" style="display:none;">Restart Quiz</button>
+  </div>
+<script>
+const questions = [
+  {
+    q: "What is the hardest substance in the human body?",
+    options: [
+      "Dentine",
+      "Bone",
+      "Enamel",
+      "Cartilage"
+    ],
+    answer: 2
+  },
+  {
+    q: "Which ancient civilization pioneered dental bridges and gold fillings?",
+    options: [
+      "Ancient Greece",
+      "The Etruscans",
+      "Ancient Egypt",
+      "The Romans"
+    ],
+    answer: 1
+  },
+  {
+    q: "How many permanent teeth do most adults have?",
+    options: [
+      "28",
+      "20",
+      "32",
+      "36"
+    ],
+    answer: 2
+  },
+  {
+    q: "Which nerve is most important in dental sensation for the lower jaw?",
+    options: [
+      "Facial nerve",
+      "Trigeminal nerve",
+      "Optic nerve",
+      "Vagus nerve"
+    ],
+    answer: 1
+  },
+  {
+    q: "What does the term 'edentulism' refer to?",
+    options: [
+      "Gum disease",
+      "Tooth pain",
+      "Toothlessness",
+      "Overbite"
+    ],
+    answer: 2
+  },
+  {
+    q: "Which famous movie character is known for his comically bad British teeth?",
+    options: [
+      "Harry Potter",
+      "Austin Powers",
+      "James Bond",
+      "The Joker"
+    ],
+    answer: 1
+  },
+  {
+    q: "Which of these is a common consequence of tooth loss?",
+    options: [
+      "Improved speech",
+      "Alveolar bone resorption",
+      "Enhanced chewing",
+      "Increased tooth count"
+    ],
+    answer: 1
+  },
+  {
+    q: "Which is NOT a function of saliva?",
+    options: [
+      "Dissolving dry food",
+      "Neutralizing acid",
+      "Producing tooth enamel",
+      "Mechanical flushing"
+    ],
+    answer: 2
+  },
+  {
+    q: "What is the main risk if a dental implant surgery injures an artery?",
+    options: [
+      "Cavities",
+      "Life-threatening bleeding",
+      "Tooth whitening",
+      "Mild headache"
+    ],
+    answer: 1
+  },
+  {
+    q: "Which AI application is already used in dental implant planning?",
+    options: [
+      "Image segmentation",
+      "Tooth cloning",
+      "Telepathic diagnosis",
+      "Tooth regrowth"
+    ],
+    answer: 0
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+
+function showQuestion() {
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('question').textContent = questions[currentQ].q;
+  document.getElementById('score').textContent = `Score: ${score}/${questions.length}`;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  questions[currentQ].options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = opt;
+    btn.onclick = () => selectOption(btn, idx);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(btn, idx) {
+  const opts = document.querySelectorAll('.option');
+  opts.forEach(b => b.disabled = true);
+  btn.classList.add('selected');
+  let correct = questions[currentQ].answer;
+  if (idx === correct) {
+    btn.classList.add('correct');
+    document.getElementById('feedback').textContent = "Correct! 🎉";
+    score++;
+  } else {
+    btn.classList.add('incorrect');
+    opts[correct].classList.add('correct');
+    document.getElementById('feedback').textContent = "Oops! The right answer was highlighted.";
+  }
+  document.getElementById('score').textContent = `Score: ${score}/${questions.length}`;
+  document.getElementById('next-btn').disabled = false;
+}
+
+document.getElementById('next-btn').onclick = function() {
+  currentQ++;
+  if (currentQ < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+};
+
+function showResult() {
+  document.getElementById('question').innerHTML = `<b>Quiz Finished!</b><br>Your final score: <span style="color:#1572A1;font-size:1.2em">${score} / ${questions.length}</span>`;
+  document.getElementById('options').innerHTML = '';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('score').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('restart-btn').style.display = '';
+}
+
+document.getElementById('restart-btn').onclick = function() {
+  currentQ = 0;
+  score = 0;
+  document.getElementById('next-btn').style.display = '';
+  document.getElementById('restart-btn').style.display = 'none';
+  showQuestion();
+};
+
+showQuestion();
+
+</script>
+</body>
+</html>
